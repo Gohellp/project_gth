@@ -1,0 +1,30 @@
+{
+  "name": "project_gth",
+  "version": "0.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "node main.js test",
+    "start": "nodemon main.js",
+    "deploy": "nodemon deploy-commands.js"
+  },
+  "keywords": [
+    "discord",
+    "nodejs",
+    "javascript"
+  ],
+  "author": "gohellp",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^0.15.0",
+    "discord-api-types": "^0.33.4",
+    "discord.js": "^13.7.0",
+    "express": "^4.18.1",
+    "mysql2": "^2.3.3",
+    "pixiv-api-client": "^0.25.0",
+    "process": "^0.11.10"
+  },
+  "devDependencies": {
+    "@discordjs/rest": "^0.5.0"
+  }
+}
