@@ -105,7 +105,7 @@ bot.on("guildMemberAdd", member=>{
 		})
 });
 bot.on("voiceStateUpdate", async (voice_1, voice_2)=>{
-	 if(voice_2.channelId===""){
+	 if(voice_2.channelId==="982798820461125682"){
 		await Connected(voice_1,voice_2,project,connection)
 	 } else if(voice_2.channelId!==voice_1.channelId&&voice_1.channelId!==null){
 		await Disconnected(voice_1,voice_2,project,connection)
