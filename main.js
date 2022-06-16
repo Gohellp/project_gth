@@ -1,6 +1,14 @@
-const {Client, Collection, Intents, MessageEmbed, WebhookClient} = require("discord.js"),
+const {Client, Collection, Intents, MessageEmbed} = require("discord.js"),
+	{token, db_user, db_pass} = require("./config.json"),
+	{Connected, Disconnected} = require("./src/voice_handler"),
+	{createConnection} = require("mysql2"),
 	{version} = require("./package.json"),
-	{token} = require("./config.json"),
+	connection = createConnection({
+		host:"gohellp.gq",
+		user:db_user,
+		database:"project_gth",
+		password:db_pass
+	}),
 	path = require('node:path'),
 	fs = require('node:fs'),
 	bot = new Client({
@@ -14,24 +22,31 @@ const {Client, Collection, Intents, MessageEmbed, WebhookClient} = require("disc
 		]
 	}),
 	commandsPath = path.join(__dirname, 'commands'),
-	commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+	msg_commands_path = path.join(__dirname, 'msg_commands'),
+	commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js')),
+	msg_commands_files = fs.readdirSync(msg_commands_path).filter(file => file.endsWith('.js'));
 bot.commands = new Collection();
+bot.msg_commands = new Collection();
 
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command = require(filePath);
 	bot.commands.set(command.data.name, command);
 }
+for(const file of msg_commands_files){
+	const file_path = path.join(msg_commands_path, file);
+	const msg_command = require(file_path);
+	bot.msg_commands.set(msg_command.name, msg_command)
+}
 
-let project,
-	logs_channel;
+let project;
 
 bot.once("ready", ()=>{
 	project=bot.guilds.cache.get("982797550769827890");
 	console.log(`${bot.user.username} successfully started`);
-	logs_channel=project.channels.cache.get("982950799791497256")
+	project.logs_channel=project.channels.cache.get("982950799791497256")
 	if(process.argv.length<3){
-		logs_channel.send({
+		project.logs_channel.send({
 			embeds: [
 				new MessageEmbed()
 					.setColor("#00ff00")
@@ -46,9 +61,23 @@ bot.once("ready", ()=>{
 				type:"PLAYING"
 			}
 		],
-		status:"idle"
+		status:"dnd"
 	});
 });
+bot.on("messageCreate", async msg=>{
+	if(msg.author.bot)return;
+	if(msg.content.startsWith("!")){
+		debugger
+		const cmd = bot.msg_commands.get(msg.content.split(" ")[0].slice(1));
+		if(!cmd) return;
+		try{
+			await cmd.execute(msg)
+		}catch (error) {
+			console.log(error)
+			await msg.reply({content:"There was an error while executing this command!", ephemeral: true })
+		}
+	}
+})
 bot.on("interactionCreate", async inter=>{
 	if(inter.isCommand()){
 		const cmd = bot.commands.get(inter.commandName);
@@ -60,9 +89,27 @@ bot.on("interactionCreate", async inter=>{
 			await inter.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 		}
 	}
-})
-bot.on("guildMemberAdd", (member)=>{
-
-})
+});
+bot.on("guildMemberAdd", member=>{
+	if (member.user.bot)return;
+	connection.query("select banned,roles from users where user_id = ?;", [member.id])
+		.then(data=>{
+			if(data.length===0){
+				return connection.query("insert into users(user_id, roles) values ?",[member.id,null])
+					.catch(err=>console.log(err));
+			}else{
+				data=data[0]
+				if(data.banned)return member.kick("Banned");
+				member.roles.add(data.roles.split("$"))
+			}
+		})
+});
+bot.on("voiceStateUpdate", async (voice_1, voice_2)=>{
+	 if(voice_2.channelId===""){
+		await Connected(voice_1,voice_2,project,connection)
+	 } else if(voice_2.channelId!==voice_1.channelId&&voice_1.channelId!==null){
+		await Disconnected(voice_1,voice_2,project,connection)
+	 }
+});
 
 bot.login(token);
