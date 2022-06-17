@@ -5,7 +5,9 @@ const { SlashCommandBuilder, EmbedBuilder } = require("@discordjs/builders"),
 		host:"gohellp.gq",
 		user:db_user,
 		password:db_pass,
-		database:"project_gth"
+		database:"project_gth",
+		bigNumberStrings: true,
+		supportBigNumbers: true,
 	})
 
 module.exports = {

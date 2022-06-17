@@ -6,7 +6,9 @@ const { EmbedBuilder } = require("@discordjs/builders"),
 		host:"gohellp.gq",
 		user:db_user,
 		password:db_pass,
-		database:"project_gth"
+		database:"project_gth",
+		bigNumberStrings: true,
+		supportBigNumbers: true,
 	})
 
 module.exports = {
@@ -35,7 +37,7 @@ module.exports = {
 					.catch(err=> console.log(err))
 			})
 	},
-	async Disconnected (voice_old, voice_new, project, connection){
+	async Disconnected (voice_old, voice_new, project){
 		await connection.promise().query('select * from voices where voice_id =?;', [voice_old.channelId])
 			.then(async ([res])=>{
 				if(!res) return project.logs_channel.send({
