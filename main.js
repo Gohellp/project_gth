@@ -102,9 +102,9 @@ bot.on("interactionCreate", async inter=>{
 bot.on("guildMemberAdd", async member=>{
 	if (member.user.bot)return;
 	await connection.promise().query("select banned,roles from users where user_id = ?;", [member.id])
-		.then(([data])=>{
+		.then(async ([data])=>{
 			if(data.length===0){
-				return connection.query("insert into users(user_id, roles) values ?",[member.id,null])
+				return await connection.promise().query(`insert into users(user_id, roles) values (?,?)`,[member.id,"null"])
 					.catch(err=>console.log(err));
 			}else{
 				if(data[0].banned)return member.kick("Banned");
