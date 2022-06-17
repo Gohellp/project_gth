@@ -7,7 +7,9 @@ const {Client, Collection, Intents, MessageEmbed} = require("discord.js"),
 		host:"gohellp.gq",
 		user:db_user,
 		database:"project_gth",
-		password:db_pass
+		password:db_pass,
+		bigNumberStrings: true,
+		supportBigNumbers: true,
 	}),
 	path = require('node:path'),
 	fs = require('node:fs'),
@@ -17,6 +19,7 @@ const {Client, Collection, Intents, MessageEmbed} = require("discord.js"),
 			Intents.FLAGS.GUILD_MEMBERS,
 			Intents.FLAGS.GUILD_MESSAGES,
 			Intents.FLAGS.DIRECT_MESSAGES,
+			Intents.FLAGS.GUILD_VOICE_STATES,
 			Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
 			Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
 		]
@@ -61,7 +64,7 @@ bot.once("ready", ()=>{
 				type:"PLAYING"
 			}
 		],
-		status:"dnd"
+		status:"idle"
 	});
 });
 bot.on("messageCreate", async msg=>{
@@ -90,25 +93,26 @@ bot.on("interactionCreate", async inter=>{
 		}
 	}
 });
-bot.on("guildMemberAdd", member=>{
+bot.on("guildMemberAdd", async member=>{
 	if (member.user.bot)return;
-	connection.query("select banned,roles from users where user_id = ?;", [member.id])
-		.then(data=>{
+	await connection.promise().query("select banned,roles from users where user_id = ?;", [member.id])
+		.then(([data])=>{
 			if(data.length===0){
 				return connection.query("insert into users(user_id, roles) values ?",[member.id,null])
 					.catch(err=>console.log(err));
 			}else{
-				data=data[0]
-				if(data.banned)return member.kick("Banned");
-				member.roles.add(data.roles.split("$"))
+				if(data[0].banned)return member.kick("Banned");
+				if(data[0].roles==="null")return;
+				member.roles.add(data[0].roles.split("$"))
 			}
 		})
+		.catch(err=>console.log(err))
 });
 bot.on("voiceStateUpdate", async (voice_1, voice_2)=>{
 	 if(voice_2.channelId==="982798820461125682"){
-		await Connected(voice_1,voice_2,project,connection)
-	 } else if(voice_2.channelId!==voice_1.channelId&&voice_1.channelId!==null){
-		await Disconnected(voice_1,voice_2,project,connection)
+		await Connected(voice_1,voice_2,project)
+	 } else if(voice_1.channelId!=="982798820461125682"&&voice_1.channelId!==null){
+		await Disconnected(voice_1,voice_2,project)
 	 }
 });
 
