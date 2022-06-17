@@ -44,7 +44,13 @@ for(const file of msg_commands_files){
 
 let project;
 
-bot.once("ready", ()=>{
+async function keep_connection(){
+	await connection.promise().query('select * from voices where owner_id = 0;')
+		.catch(err=>console.log(err))
+}
+
+bot.once("ready", async ()=>{
+	setInterval(keep_connection, 5_000)
 	project=bot.guilds.cache.get("982797550769827890");
 	console.log(`${bot.user.username} successfully started`);
 	project.logs_channel=project.channels.cache.get("982950799791497256")
