@@ -1,5 +1,5 @@
 'use strict';
-const { EmbedBuilder } = require("@discordjs/builders");
+const { EmbedBuilder } = require("@discordjs/builders")
 
 module.exports = {
 	async Connected(voice_old, voice_new, project){
