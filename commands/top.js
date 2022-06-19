@@ -1,20 +1,10 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("@discordjs/builders"),
-	{createConnection} = require("mysql2"),
-	{db_user,db_pass} = require("../config.json"),
-	connection = createConnection({
-		host:"gohellp.gq",
-		user:db_user,
-		password:db_pass,
-		database:"project_gth",
-		bigNumberStrings: true,
-		supportBigNumbers: true,
-	})
+const { SlashCommandBuilder, EmbedBuilder } = require("@discordjs/builders")
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("top")
 		.setDescription("User's top 10"),
-	async execute(inter){
+	async execute(inter, connection){
 		let embeds=[]
 		await connection.promise().query("select user_id,msg_count,level from users order by msg_count limit 10;")//Запрос к базе данных, внутри которого всё будет вариться
 			.then(([res])=>{

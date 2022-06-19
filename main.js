@@ -3,14 +3,6 @@ const {Client, Collection, Intents, MessageEmbed} = require("discord.js"),
 	{Connected, Disconnected} = require("./src/voice_handler"),
 	{createConnection} = require("mysql2"),
 	{version} = require("./package.json"),
-	connection = createConnection({
-		host:"gohellp.gq",
-		user:db_user,
-		database:"project_gth",
-		password:db_pass,
-		bigNumberStrings: true,
-		supportBigNumbers: true,
-	}),
 	path = require('node:path'),
 	fs = require('node:fs'),
 	bot = new Client({
@@ -45,7 +37,7 @@ for(const file of msg_commands_files){
 let project;
 
 async function keep_connection(){
-	await connection.promise().query('select * from voices where owner_id = 0;')
+	await project.connection.promise().query('select * from voices;')
 		.catch(err=>console.log(err))
 }
 
@@ -54,6 +46,14 @@ bot.once("ready", async ()=>{
 	project=bot.guilds.cache.get("982797550769827890");
 	console.log(`${bot.user.username} successfully started`);
 	project.logs_channel=project.channels.cache.get("982950799791497256")
+	project.connection = createConnection({
+		host:"gohellp.gq",
+		user:db_user,
+		database:"project_gth",
+		password:db_pass,
+		bigNumberStrings: true,
+		supportBigNumbers: true,
+	})
 	if(process.argv.length<3){
 		project.logs_channel.send({
 			embeds: [
@@ -92,7 +92,7 @@ bot.on("interactionCreate", async inter=>{
 		const cmd = bot.commands.get(inter.commandName);
 		if (!cmd) return;
 		try {
-			await cmd.execute(inter);
+			await cmd.execute(inter, project.connection);
 		} catch (error) {
 			console.error(error);
 			await inter.reply({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -101,10 +101,10 @@ bot.on("interactionCreate", async inter=>{
 });
 bot.on("guildMemberAdd", async member=>{
 	if (member.user.bot)return;
-	await connection.promise().query("select banned,roles from users where user_id = ?;", [member.id])
+	await project.connection.promise().query("select banned,roles from users where user_id = ?;", [member.id])
 		.then(async ([data])=>{
 			if(data.length===0){
-				return await connection.promise().query(`insert into users(user_id, roles) values (?,?)`,[member.id,"null"])
+				return await project.connection.promise().query(`insert into users(user_id, roles) values (?,?)`,[member.id,"null"])
 					.catch(err=>console.log(err));
 			}else{
 				if(data[0].banned)return member.kick("Banned");

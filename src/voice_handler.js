@@ -1,22 +1,12 @@
 'use strict';
-const { EmbedBuilder } = require("@discordjs/builders"),
-	{createConnection} = require("mysql2"),
-	{db_user,db_pass} = require("../config.json"),
-	connection = createConnection({
-		host:"gohellp.gq",
-		user:db_user,
-		password:db_pass,
-		database:"project_gth",
-		bigNumberStrings: true,
-		supportBigNumbers: true,
-	})
+const { EmbedBuilder } = require("@discordjs/builders")
 
 module.exports = {
 	async Connected(voice_old, voice_new, project){
 		if(voice_old.channelId!==null&&!voice_old.channel.members.size){
 			project.channels.cache.get(voice_old.channelId).delete()
 				.then(async () => {
-					await connection.promise().query('DELETE FROM voices WHERE owner_id=?;', [voice_old.id])
+					await project.connection.promise().query('DELETE FROM voices WHERE owner_id=?;', [voice_old.id])
 						.catch(err=>console.log(err))
 				})
 		}
@@ -33,12 +23,12 @@ module.exports = {
 	})
 			.then(async voice=>{
 				await voice_new.setChannel(voice)
-				await connection.promise().query(`insert into voices(owner_id, voice_id) values (${voice_new.id},${voice.id});`)
+				await project.connection.promise().query(`insert into voices(owner_id, voice_id) values (${voice_new.id},${voice.id});`)
 					.catch(err=> console.log(err))
 			})
 	},
 	async Disconnected (voice_old, voice_new, project){
-		await connection.promise().query('select * from voices where voice_id =?;', [voice_old.channelId])
+		await project.connection.promise().query('select * from voices where voice_id =?;', [voice_old.channelId])
 			.then(async ([res])=>{
 				if(!res) return project.logs_channel.send({
 					embeds:[
@@ -60,13 +50,13 @@ module.exports = {
 								}
 							]
 						})
-						await connection.promise().query("update voices set owner_id=? where owner_id=?;",[new_owner.id,voice_old.id])
+						await project.connection.promise().query("update voices set owner_id=? where owner_id=?;",[new_owner.id,voice_old.id])
 							.catch(err=>console.log(err))
 					}else{
 						try {
 							voice_old.channel.delete()
 								.then(async ()=>{
-									await connection.promise().query("delete from voices where owner_id=?;", [voice_old.id])
+									await project.connection.promise().query("delete from voices where owner_id=?;", [voice_old.id])
 										.catch(err=>console.log(err))
 								})
 						} catch (e) {
@@ -84,6 +74,5 @@ module.exports = {
 				}
 			})
 			.catch(err=>console.log(err))
-		connection.close()
 	}
 }
