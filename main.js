@@ -39,6 +39,7 @@ let project;
 async function keep_connection(){
 	await project.connection.promise().query('select * from voices;')
 		.catch(err=>console.log(err))
+		console.log("ok")
 }
 
 bot.once("ready", async ()=>{
@@ -51,17 +52,9 @@ bot.once("ready", async ()=>{
 		password:db_pass,
 		bigNumberStrings: true,
 		supportBigNumbers: true,
-	}),
+	});
 	console.log(`${bot.user.username} successfully started`);
 	project.logs_channel=project.channels.cache.get("982950799791497256")
-	project.connection = createConnection({
-		host:"gohellp.gq",
-		user:db_user,
-		database:"project_gth",
-		password:db_pass,
-		bigNumberStrings: true,
-		supportBigNumbers: true,
-	})
 	if(process.argv.length<3){
 		project.logs_channel.send({
 			embeds: [
