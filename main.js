@@ -44,6 +44,14 @@ async function keep_connection(){
 bot.once("ready", async ()=>{
 	setInterval(keep_connection, 5_000)
 	project=bot.guilds.cache.get("982797550769827890");
+	project.connection = createConnection({
+		host:"gohellp.gq",
+		user:db_user,
+		database:"project_gth",
+		password:db_pass,
+		bigNumberStrings: true,
+		supportBigNumbers: true,
+	}),
 	console.log(`${bot.user.username} successfully started`);
 	project.logs_channel=project.channels.cache.get("982950799791497256")
 	project.connection = createConnection({
@@ -87,7 +95,7 @@ bot.on("messageCreate", async msg=>{
 		}
 	}
 })
-bot.on("interactionCreate", async inter=>{
+bot.on("interactionCreate", async inter=>   {
 	if(inter.isCommand()){
 		const cmd = bot.commands.get(inter.commandName);
 		if (!cmd) return;
