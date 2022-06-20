@@ -51,8 +51,7 @@ bot.once("ready", async ()=>{
 		database:"project_gth",
 		password:db_pass,
 		bigNumberStrings: true,
-		supportBigNumbers: true,
-		ina
+		supportBigNumbers: true
 	});
 	console.log(`${bot.user.username} successfully started`);
 	project.logs_channel=project.channels.cache.get("982950799791497256")
