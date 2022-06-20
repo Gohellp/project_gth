@@ -43,7 +43,7 @@ async function keep_connection(){
 }
 
 bot.once("ready", async ()=>{
-	setInterval(keep_connection, 5_000)
+	setInterval(keep_connection, 300000)
 	project=bot.guilds.cache.get("982797550769827890");
 	project.connection = createConnection({
 		host:"gohellp.gq",
@@ -52,6 +52,7 @@ bot.once("ready", async ()=>{
 		password:db_pass,
 		bigNumberStrings: true,
 		supportBigNumbers: true,
+		ina
 	});
 	console.log(`${bot.user.username} successfully started`);
 	project.logs_channel=project.channels.cache.get("982950799791497256")
